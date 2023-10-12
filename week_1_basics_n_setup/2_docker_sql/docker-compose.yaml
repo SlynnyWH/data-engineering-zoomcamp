@@ -1,19 +1,49 @@
 services:
   pgdatabase:
     image: postgres:13
+    #container_name: pg-database
     environment:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
       - POSTGRES_DB=ny_taxi
     volumes:
-      - "./ny_taxi_postgres_data:/var/lib/postgresql/data:rw"
+    #  - "./ny_taxi_postgres_data:/var/lib/postgresql/data:rw"
+      - my-data:/var/lib/postgresql/data:rw 
     ports:
       - "5432:5432"
+    networks:
+      - pg-network
   pgadmin:
     image: dpage/pgadmin4
+    #container_name: pg-admin
     environment:
       - PGADMIN_DEFAULT_EMAIL=admin@admin.com
       - PGADMIN_DEFAULT_PASSWORD=root
     ports:
       - "8080:80"
+    networks:
+      - pg-network
+    volumes:
+      - mypgadmin-data:/var/lib/pgadmin:rw 
+      - mypgadmin-data:/.pgadmin:rw 
+    #links:
+    #  - "pgdatabase:pgsql-server"
+
+networks:
+  pg-network:
+    driver: bridge
+
+volumes:
+    my-data: 
+      driver: local
+      driver_opts:
+        type: none
+        o: bind
+        device: /home/wiktor/Repos/data-engineering-zoomcamp/ny_taxi_postgres_data
+    mypgadmin-data:
+      driver: local
+      driver_opts:
+        type: none
+        o: bind
+        device: /home/wiktor/Repos/data-engineering-zoomcamp/pga
     

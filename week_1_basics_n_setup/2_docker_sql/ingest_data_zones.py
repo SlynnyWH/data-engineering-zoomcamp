@@ -20,37 +20,16 @@ def main(params):
     
 
     
-    os.system(f"wget {url} -O {csv_name}.gz")
+    os.system(f"wget {url} -O {csv_name}")
     os.system(f"gzip -d {csv_name}.gz")
     os.system(f"rm -rf {csv_name}.gz")
     
     engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{db}')
     engine.connect()
 
-    df_iter = pd.read_csv(csv_name, iterator=True, chunksize=100000)
-    dfX = next(df_iter)
-
-    dfX.tpep_pickup_datetime = pd.to_datetime(dfX.tpep_pickup_datetime)
-    dfX.tpep_dropoff_datetime = pd.to_datetime(dfX.tpep_dropoff_datetime)
-    dfX.to_sql(name=tb,con=engine, if_exists='replace')
-    #dfX.head(n=0).to_sql(name=tb,con=engine, if_exists='replace')
-
-    from time import time
-    u_t_start = time()
-
-    n=1
-    for x in df_iter:
-        t_start = time()
-        x.tpep_pickup_datetime = pd.to_datetime(x.tpep_pickup_datetime)
-        x.tpep_dropoff_datetime = pd.to_datetime(x.tpep_dropoff_datetime)
-        x.to_sql(name=tb,con=engine, if_exists='append')
-        
-        t_end = time()
-        print(f'inserted chunk number {n}, it took %.3f seconds' % (t_end - t_start))
-        n = n+1
-        
-    u_t_end = time()
-    print(f'Chunks inserted: {n-1}. Total time: %.3f seconds' % (u_t_end - u_t_start))
+    df = pd.read_csv(csv_name)
+    df.to_sql(name=tb,con=engine, if_exists='append')    
+    print('Data inserted.')
 
     os.system(f"rm -rf {csv_name}")
 
